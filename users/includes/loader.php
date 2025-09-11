@@ -148,10 +148,11 @@ if (!$user->isLoggedIn()) {
 }
 
 if ($settings->force_ssl == 1 && !isHTTPSConnection()) {
-	$host = Server::get('HTTP_HOST', '');
-	$uri = Server::get('REQUEST_URI', '/');
+    $host = Server::get('HTTP_HOST', '');
+    $uri = Server::get('REQUEST_URI', '/');
+
     if ($host !== '') {
-        Redirect::sanitized("https://{$host}{$uri}");
+        Redirect::to("https://{$host}{$uri}"); 
     }
 }
 
