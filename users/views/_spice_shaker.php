@@ -253,7 +253,7 @@ if (file_exists($abs_us_root . $us_url_root . "users/parsers/temp.zip")) {
                 <h6 class="card-title"><?= safeReturn(hed($d->project)) ?> v<?= safeReturn(hed($d->version)) . " (" . safeReturn(hed($d->status)) . ")"; ?>
                   <?php if ($status["installed"] == "true" && $status['ver'] != "0.0.0") {
                     $msg = spiceShakerBadge($d->version, $status['ver']);
-                    echo '<span class="' . $msg['badge']['class'] . ' spice-badge-' . $counter . '">' . $msg['badge']['text'] . '</span>';
+                    echo '<span class="' . safeReturn($msg['badge']['class']) . ' spice-badge-' . $counter . '">' . safeReturn($msg['badge']['text']) . '</span>';
                   } ?>
                 </h6>
                 <p><strong><?= safeReturn(hed($text)) ?><?= safeReturn(hed(ucfirst($d->category))) ?></strong>
@@ -290,7 +290,7 @@ if (file_exists($abs_us_root . $us_url_root . "users/parsers/temp.zip")) {
                   $labelText = "Update";
                 }
                 ?>
-                <button type="button" name="button" class="btn btn-danger installme <?= $warning ?>" data-res="<?= safeReturn(hed($d->reserved)) ?>" data-type="<?= safeReturn(hed($d->category)) ?>" data-url="<?= safeReturn(hed($d->dd)) ?>" data-hash="<?= safeReturn(hed($d->hash)) ?>" data-counter="<?= $counter ?>"><?= $labelText ?></button>
+                <button type="button" name="button" class="btn btn-danger installme <?= $warning ?>" data-res="<?= safeReturn(hed($d->reserved)) ?>" data-type="<?= safeReturn(hed($d->category)) ?>" data-url="<?= safeReturn(hed($d->dd)) ?>" data-hash="<?= safeReturn(hed($d->hash)) ?>" data-counter="<?= $counter ?>"><?= safeReturn($labelText) ?></button>
               <?php
               }
             } else { ?>

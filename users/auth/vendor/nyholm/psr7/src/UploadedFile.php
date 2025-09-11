@@ -81,68 +81,15 @@ class UploadedFile implements UploadedFileInterface
 
     public function getStream(): StreamInterface
     {
-        $this->validateActive();
-
-        if ($this->stream instanceof StreamInterface) {
-            return $this->stream;
-        }
-
-        $safePath = self::sanitizePath(basename($this->file), sys_get_temp_dir());
-        if ($safePath === false || $safePath !== realpath($this->file)) {
-             throw new \RuntimeException('Invalid file path; file is not within the temporary directory.');
-        }
-
-        if (false === $resource = @\fopen($this->file, 'r')) {
-            throw new \RuntimeException(\sprintf('The file "%s" cannot be opened: %s', $this->file, \error_get_last()['message'] ?? ''));
-        }
-
-        return Stream::create($resource);
+         throw new \RuntimeException("This feature is disabled in UserSpice");
+        
+       
     }
 
     public function moveTo($targetPath): void
     {
-        $this->validateActive();
+        throw new \RuntimeException("This feature is disabled in UserSpice");
 
-        if (!\is_string($targetPath) || '' === $targetPath) {
-            throw new \InvalidArgumentException('Invalid path provided for move operation; must be a non-empty string');
-        }
-
-        $uploadDirectory = '/var/www/my-app/uploads'; // Example path, configure as needed
-        $safeTargetPath = self::sanitizePath(basename($targetPath), $uploadDirectory);
-
-        if ($safeTargetPath === false || $safeTargetPath !== $targetPath) {
-            throw new \InvalidArgumentException('Invalid target path provided (potential path traversal attempt)');
-        }
-
-        if (null !== $this->file) {
-            $safeSourcePath = self::sanitizePath(basename($this->file), sys_get_temp_dir());
-            if ($safeSourcePath === false || $safeSourcePath !== realpath($this->file)) {
-                 throw new \RuntimeException('Invalid source file path; file is not within the temporary directory.');
-            }
-            
-            $this->moved = 'cli' === \PHP_SAPI ? @\rename($this->file, $targetPath) : @\move_uploaded_file($this->file, $targetPath);
-
-            if (false === $this->moved) {
-                throw new \RuntimeException(\sprintf('Uploaded file could not be moved to "%s": %s', $targetPath, \error_get_last()['message'] ?? ''));
-            }
-        } else {
-            $stream = $this->getStream();
-            if ($stream->isSeekable()) {
-                $stream->rewind();
-            }
-
-            if (false === $resource = @\fopen($targetPath, 'w')) {
-                throw new \RuntimeException(\sprintf('The file "%s" cannot be opened: %s', $targetPath, \error_get_last()['message'] ?? ''));
-            }
-
-            $dest = Stream::create($resource);
-            while (!$stream->eof()) {
-                if (!$dest->write($stream->read(1048576))) {
-                    break;
-                }
-            }
-            $this->moved = true;
-        }
     }
 
     public function getSize(): int
