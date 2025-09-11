@@ -463,8 +463,9 @@ $update_available = false;
                   spiceUpdateFail();
                   $failRan = true;
                 }
+        
                 echo "<br>The hash does not match. This means one of 2 things. Either the file on the server has been tampered with or (more likely) the file was
-            updated and we forgot to update the hash. Please fill out a bug report. You can still download this plugin at $url if you wish.";
+            updated and we forgot to update the hash. Please fill out a bug report. You can still download this plugin at ".safeReturn($url). " if you wish.";
               }
               echo '<br>Deleting zip file';
               logger($user->data()->id, $result->next_ver, 'Deleting zip file');
