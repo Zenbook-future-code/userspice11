@@ -219,12 +219,9 @@ $update_available = false;
           curl_close($ch);
 
           $result = json_decode($result);
-          foreach($result as $key => $value){
-            $result->$key = safeReturn(hed($value));
-          }
 
           if (isset($result->next_ver) && $result->next_ver != '') {
-            
+
             // Convert versions to comparable format and check if current version is newer
             $currentVersion = preg_replace('/[^\\d.]+/', '', $user_spice_ver);
             $nextVersion = preg_replace('/[^\\d.]+/', '', $result->next_ver);
@@ -233,32 +230,32 @@ $update_available = false;
               die("Your current version ($currentVersion) is equal to or newer than the available update ($nextVersion). No update needed.");
             }
             if ($result->bleeding_edge == 1 && $settings->bleeding_edge == 0) {
-              die("$result->next_ver is a bleeding edge update and is not ready for automatic install. Please check back later.");
+              die(safeReturn(hed($result->next_ver)) . " is a bleeding edge update and is not ready for automatic install. Please check back later.");
             }
             //dev mode can download experimental updates or bleeding edge
             if ($result->bleeding_edge == 2 && ($settings->bleeding_edge != 2 && $settings->bleeding_edge != 1)) {
-              die("$result->next_ver is an experimental update and is not ready for automatic install. Please check back later.");
+              die(safeReturn(hed($result->next_ver)) . " is an experimental update and is not ready for automatic install. Please check back later.");
             }
             if ($result->no_update > 0) {
               if ($result->no_update == 1) {
-                die("$result->next_ver must be installed manually from UserSpice.com/updates");
+                die(safeReturn(hed($result->next_ver)) . " must be installed manually from UserSpice.com/updates");
               } elseif ($result->no_update == 2) {
                 die('The updater itself must be updated, please install the Updater Plugin and run it from Spice Shaker');
               }
             } else { //do the update
-              echo "Update found... $result->next_ver released on $result->released.<br>";
+              echo "Update found... " . safeReturn(hed($result->next_ver)) . " released on " . safeReturn(hed($result->released)) . ".<br>";
               spiceUpdateBegins();
               $failRan = false;
               if (file_exists($abs_us_root . $us_url_root . 'usupdate.zip')) {
                 if (!unlink($abs_us_root . $us_url_root . 'usupdate.zip')) {
-                  logger($user->data()->id, "$result->next_ver", "Failed to delete existing zip file");
+                  logger($user->data()->id, $result->next_ver, "Failed to delete existing zip file");
                   echo "Error: Could not delete existing zip file. Please check permissions.";
                   die;
                 }
               }
               $zipFile = $abs_us_root . $us_url_root . 'usupdate.zip';
               echo 'Creating zip file...';
-              logger($user->data()->id, "$result->next_ver", 'Creating zip file');
+              logger($user->data()->id, $result->next_ver, 'Creating zip file');
               $extractPath = $abs_us_root . $us_url_root;
               $zip_resource = fopen($zipFile, 'w');
               $url = 'https://github.com/mudmin/releases/raw/master/updates/' . $result->next_file;
@@ -266,7 +263,7 @@ $update_available = false;
 
               $ch_start = curl_init();
               echo 'attempting download...';
-              logger($user->data()->id, "$result->next_ver", 'Attempting download');
+              logger($user->data()->id, $result->next_ver, 'Attempting download');
               curl_setopt($ch_start, CURLOPT_URL, $url);
               curl_setopt($ch_start, CURLOPT_FAILONERROR, true);
               curl_setopt($ch_start, CURLOPT_HEADER, 0);
@@ -286,7 +283,7 @@ $update_available = false;
               $page = curl_exec($ch_start);
               if (!$page) {
                 echo 'Error :- ' . curl_error($ch_start);
-                logger($user->data()->id, "$result->next_ver", 'Curl error' . curl_error($ch_start));
+                logger($user->data()->id, $result->next_ver, 'Curl error' . curl_error($ch_start));
                 die;
               }
               curl_close($ch_start);
@@ -303,12 +300,12 @@ $update_available = false;
                   ZipArchive::ER_OPEN => 'Failed to open zip file.',
                   default => 'Unknown zip error (Code: ' . $openResult . ').',
                 };
-                logger($user->data()->id, "$result->next_ver", "Zip open failed: $errorMessage");
+                logger($user->data()->id, $result->next_ver, "Zip open failed: $errorMessage");
                 echo "Error: $errorMessage Please try downloading manually from <a href='https://userspice.com/updates'>UserSpice.com</a>";
                 $zip->close();
                 if (file_exists($zipFile)) {
                   if (!unlink($zipFile)) {
-                    logger($user->data()->id, "$result->next_ver", "Failed to delete zip file after open error");
+                    logger($user->data()->id, $result->next_ver, "Failed to delete zip file after open error");
                     echo "Error: Could not delete zip file after failure. Please check permissions.";
                   }
                 }
@@ -319,11 +316,11 @@ $update_available = false;
                 die;
               }
               echo '<br>Opening zip file and checking hash.';
-              logger($user->data()->id, "$result->next_ver", 'Opening zip file and checking hash');
+              logger($user->data()->id, $result->next_ver, 'Opening zip file and checking hash');
               $newCrc = base64_encode(hash_file('sha256', $zip->filename));
               if ($newCrc == $hash) {
                 echo '<br>Hash matches';
-                logger($user->data()->id, "$result->next_ver", 'Hash Matches');
+                logger($user->data()->id, $result->next_ver, 'Hash Matches');
 
                 // Check subdirectory permissions
                 function is_path_writable($path, &$non_writable = [], $max_examples = 10)
@@ -370,7 +367,7 @@ $update_available = false;
                 }
 
                 if (!empty($non_writable_paths)) {
-                  logger($user->data()->id, "$result->next_ver", "Required paths not fully writable: " . implode(', ', $non_writable_paths));
+                  logger($user->data()->id, $result->next_ver, "Required paths not fully writable: " . implode(', ', $non_writable_paths));
                   echo '<br><span style="color:red;">Error: Some directories or files in the `users` and/or `usersc` folders are not writable. Please check permissions.</span>';
                   if (!empty($non_writable_paths)) {
                     echo '<br>The following paths are not writable:<ul>';
@@ -383,7 +380,7 @@ $update_available = false;
                   $zip->close();
                   if (file_exists($zipFile)) {
                     if (!unlink($zipFile)) {
-                      logger($user->data()->id, "$result->next_ver", "Failed to delete zip file after permission error");
+                      logger($user->data()->id, $result->next_ver, "Failed to delete zip file after permission error");
                       echo "Error: Could not delete zip file after failure. Please check permissions.";
                     }
                   }
@@ -396,39 +393,39 @@ $update_available = false;
 
                 // Test the extraction
                 echo '...attempting to extract zip file';
-                logger($user->data()->id, "$result->next_ver", 'Attempting to extract zip file');
+                logger($user->data()->id, $result->next_ver, 'Attempting to extract zip file');
 
                 if (@$zip->extractTo($extractPath)) {
                   echo '...extraction successful';
-                  logger($user->data()->id, "$result->next_ver", 'Zip file extracted successfully');
+                  logger($user->data()->id, $result->next_ver, 'Zip file extracted successfully');
                   $zip->close();
 
-                  echo "<br><strong><span style='color:blue'>$result->message</span></strong>";
+                  echo "<br><strong><span style='color:blue'>" . safeReturn(hed($result->message)) . "</span></strong>";
 
                   if (file_exists($zipFile)) {
                     if (!unlink($zipFile)) {
-                      logger($user->data()->id, "$result->next_ver", "Failed to delete zip file after extraction");
+                      logger($user->data()->id, $result->next_ver, "Failed to delete zip file after extraction");
                       echo "Error: Could not delete zip file after extraction. Please check permissions.";
                     } else {
-                      logger($user->data()->id, "$result->next_ver", "Zip file deleted successfully");
+                      logger($user->data()->id, $result->next_ver, "Zip file deleted successfully");
                     }
                   }
 
                   spiceUpdateSuccess();
-                  logger($user->data()->id, "$result->next_ver", $result->message);
-                  logger($user->data()->id, "$result->next_ver", 'Running migration script(s)');
+                  logger($user->data()->id, $result->next_ver, $result->message);
+                  logger($user->data()->id, $result->next_ver, 'Running migration script(s)');
 
                   Redirect::to($us_url_root . 'users/updates/index.php?auto=1');
                 } else {
                   // Extraction failed
                   echo '<br><span style="color:red;">Error: Failed to extract zip file</span>';
-                  logger($user->data()->id, "$result->next_ver", 'Failed to extract zip file');
+                  logger($user->data()->id, $result->next_ver, 'Failed to extract zip file');
 
                   $zip->close();
 
                   if (file_exists($zipFile)) {
                     if (!unlink($zipFile)) {
-                      logger($user->data()->id, "$result->next_ver", "Failed to delete zip file after extraction failure");
+                      logger($user->data()->id, $result->next_ver, "Failed to delete zip file after extraction failure");
                       echo "Error: Could not delete zip file after failure. Please check permissions.";
                     }
                   }
@@ -445,10 +442,10 @@ $update_available = false;
                 }
 
                 echo '<br>Deleting zip file';
-                logger($user->data()->id, "$result->next_ver", 'Deleting zip file');
+                logger($user->data()->id, $result->next_ver, 'Deleting zip file');
                 if (file_exists($zipFile)) {
                   if (!unlink($zipFile)) {
-                    logger($user->data()->id, "$result->next_ver", "Failed to delete zip file");
+                    logger($user->data()->id, $result->next_ver, "Failed to delete zip file");
                     echo "Error: Could not delete zip file. Please check permissions.";
                   }
                 }
@@ -456,12 +453,12 @@ $update_available = false;
                 if (file_exists($zipFile)) {
                   $zip->close();
                   if (!unlink($zipFile)) {
-                    logger($user->data()->id, "$result->next_ver", "Failed to delete zip file after hash mismatch");
+                    logger($user->data()->id, $result->next_ver, "Failed to delete zip file after hash mismatch");
                     echo "Error: Could not delete zip file after failure. Please check permissions.";
                   }
                 }
 
-                logger($user->data()->id, "$result->next_ver", 'Hash match failed');
+                logger($user->data()->id, $result->next_ver, 'Hash match failed');
                 if (!$failRan) {
                   spiceUpdateFail();
                   $failRan = true;
@@ -470,10 +467,10 @@ $update_available = false;
             updated and we forgot to update the hash. Please fill out a bug report. You can still download this plugin at $url if you wish.";
               }
               echo '<br>Deleting zip file';
-              logger($user->data()->id, "$result->next_ver", 'Deleting zip file');
+              logger($user->data()->id, $result->next_ver, 'Deleting zip file');
               if (file_exists($zipFile)) {
                 if (!unlink($zipFile)) {
-                  logger($user->data()->id, "$result->next_ver", "Failed to delete zip file");
+                  logger($user->data()->id, $result->next_ver, "Failed to delete zip file");
                   echo "Error: Could not delete zip file. Please check permissions.";
                 }
               }
@@ -536,9 +533,14 @@ $update_available = false;
     <?php
     $plugins = $db->query('SELECT * FROM us_plugins WHERE last_check < ? AND status = ?', [date('Y-m-d H:i:s', strtotime('-3 hours')), 'active'])->results();
     foreach ($plugins as $p) {
-      echo "<br>Checking $p->plugin ";
-      if (file_exists($abs_us_root . $us_url_root . 'usersc/plugins/' . $p->plugin . '/migrate.php')) {
-        include $abs_us_root . $us_url_root . 'usersc/plugins/' . $p->plugin . '/migrate.php';
+      echo "<br>Checking " . hed($p->plugin) . " ";
+
+      $unsafe_path = 'usersc/plugins/' . $p->plugin . '/migrate.php';
+      $base_dir = $abs_us_root . $us_url_root;
+      $safe_path = sanitizePath($unsafe_path, $base_dir);
+
+      if ($safe_path && file_exists($safe_path)) {
+        include $safe_path;
       }
       $db->update('us_plugins', $p->id, ['last_check' => date('Y-m-d H:i:s')]);
     } ?>

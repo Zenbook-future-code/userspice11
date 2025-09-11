@@ -200,121 +200,118 @@ if (file_exists($abs_us_root . $us_url_root . "users/parsers/temp.zip")) {
   <?php if (isset($result)) {
     echo "<div class='row'>";
     $dev = json_decode($result);
-    $counter = 0;
-    if (!is_null($dev)) {
-      foreach ($dev as $d) {
-        foreach ($d as $k => $v) {
-          $d->$k = safeReturn(hed($v));
-        }
-        $status = shakerIsInstalled($d->category, $d->reserved);
+  $counter = 0;
+  if (!is_null($dev)) {
+    foreach ($dev as $d) {
+      $status = shakerIsInstalled($d->category, $d->reserved);
 
-        if ($d->release_type == 1) {
-          $class = "card-official";
-          $text = "Official ";
-          $img = $us_url_root . "users/images/check.png";
-          $warning = "";
-        } else {
-          $class = "";
-          $text = "Community ";
-          $img = "";
-          $warning = "warnme";
-        }
+      if ($d->release_type == 1) {
+        $class = "card-official";
+        $text = "Official ";
+        $img = $us_url_root . "users/images/check.png";
+        $warning = "";
+      } else {
+        $class = "";
+        $text = "Community ";
+        $img = "";
+        $warning = "warnme";
+      }
   ?>
-        <div class="col-12 col-sm-6 col-md-4 pb-3">
-          <div class="card card-custom <?= $class ?> bg-white border-white border-0" style="height: 450px">
-            <?php
-            if ($d->category == "template") {
-              $imgClass = "card-template-img";
-              $showLogo = false;
-              $width = "col-6";
-            } else {
-              $width = "col-12";
-              $imgClass = "card-custom-img";
-              $showLogo = true;
-            }
-            ?>
-            <div class="<?= $imgClass ?>" style="background-image: url(<?php if ($d->img != '') {
-                                                                          echo $d->img;
-                                                                        } else {
-                                                                          echo $us_url_root . 'users/images/ssbg.jpg';
-                                                                        } ?>);">
-            </div>
-            <?php if ($showLogo) { ?>
-              <div class="card-custom-avatar">
-                <?php if ($d->icon == '') {
-                  $src = "https://bugs.userspice.com/usersc/logos/nologo.png";
-                } else {
-                  $src = $d->icon;
-                }
-                ?>
-                <img class="img-fluid" src="<?= $src ?>" alt="Avatar" />
-              </div>
-            <?php } ?>
-            <div class="card-body" style="overflow-y: auto">
-              <div class="row">
-                <div class="<?= $width ?>">
-                  <h6 class="card-title"><?= $d->project ?> v<?= $d->version . " (" . $d->status . ")"; ?>
-                    <?php if ($status["installed"] == "true" && $status['ver'] != "0.0.0") {
-                      $msg = spiceShakerBadge($d->version, $status['ver']);
-                      echo '<span class="' . $msg['badge']['class'] . ' spice-badge-' . $counter . '">' . $msg['badge']['text'] . '</span>';
-                    } ?>
-                  </h6>
-                  <p><strong><?= $text ?><?= ucfirst($d->category) ?></strong>
-                    <img src="<?= $img ?>" alt="" height="15">
-                  </p>
-                </div>
-                <?php if ($d->category == "template") { ?>
-                  <div class="col-6 text-end">
-                    <?php
-                    if (isset($d->features)) {
-                      echo $d->features . "<br>";
-                    }
-
-                    if (isset($d->accessibility)) {
-                      echo $d->accessibility;
-                    }
-                    ?>
-                  </div>
-                <?php } ?>
-              </div>
-              <p class="card-text"><?= $d->descrip ?></p>
-            </div>
-            <div class="card-footer" style="background: inherit; border-color: inherit;">
-              <a href="#" class="btn btn-default install" style="display:none;">Please Wait</a>
-              <?php
-              if ($status["installed"] == true) {
-                if ($d->category == "plugin" && file_exists($abs_us_root . $us_url_root . "usersc/plugins/" . $d->reserved . "/.noupdate")) {
-                  echo "This plugin is locked and cannot be updated";
-                } else {
+      <div class="col-12 col-sm-6 col-md-4 pb-3">
+        <div class="card card-custom <?= $class ?> bg-white border-white border-0" style="height: 450px">
+          <?php
+          if ($d->category == "template") {
+            $imgClass = "card-template-img";
+            $showLogo = false;
+            $width = "col-6";
+          } else {
+            $width = "col-12";
+            $imgClass = "card-custom-img";
+            $showLogo = true;
+          }
+          ?>
+          <div class="<?= $imgClass ?>" style="background-image: url(<?php if ($d->img != '') {
+                                                                        echo safeReturn(hed($d->img));
+                                                                      } else {
+                                                                        echo $us_url_root . 'users/images/ssbg.jpg';
+                                                                      } ?>);">
+          </div>
+          <?php if ($showLogo) { ?>
+            <div class="card-custom-avatar">
+              <?php if ($d->icon == '') {
+                $src = "https://bugs.userspice.com/usersc/logos/nologo.png";
+              } else {
+                $src = safeReturn(hed($d->icon));
+              }
               ?>
-                  <?php if (isset($msg['text'])) {
-                    $labelText = $msg['text'];
-                  } else {
-                    $labelText = "Update";
+              <img class="img-fluid" src="<?= $src ?>" alt="Avatar" />
+            </div>
+          <?php } ?>
+          <div class="card-body" style="overflow-y: auto">
+            <div class="row">
+              <div class="<?= $width ?>">
+                <h6 class="card-title"><?= safeReturn(hed($d->project)) ?> v<?= safeReturn(hed($d->version)) . " (" . safeReturn(hed($d->status)) . ")"; ?>
+                  <?php if ($status["installed"] == "true" && $status['ver'] != "0.0.0") {
+                    $msg = spiceShakerBadge($d->version, $status['ver']);
+                    echo '<span class="' . $msg['badge']['class'] . ' spice-badge-' . $counter . '">' . $msg['badge']['text'] . '</span>';
+                  } ?>
+                </h6>
+                <p><strong><?= safeReturn(hed($text)) ?><?= safeReturn(hed(ucfirst($d->category))) ?></strong>
+                  <img src="<?= $img ?>" alt="" height="15">
+                </p>
+              </div>
+              <?php if ($d->category == "template") { ?>
+                <div class="col-6 text-end">
+                  <?php
+                  if (isset($d->features)) {
+                    echo safeReturn(hed($d->features)) . "<br>";
+                  }
+
+                  if (isset($d->accessibility)) {
+                    echo safeReturn(hed($d->accessibility));
                   }
                   ?>
-                  <button type="button" name="button" class="btn btn-danger installme <?= $warning ?>" data-res="<?= $d->reserved ?>" data-type="<?= $d->category ?>" data-url="<?= $d->dd ?>" data-hash="<?= $d->hash ?>" data-counter="<?= $counter ?>"><?= $labelText ?></button>
-                <?php
-                }
-              } else { ?>
-                <button type="button" name="button" class="btn btn-primary installme <?= $warning ?>" data-res="<?= $d->reserved ?>" data-type="<?= $d->category ?>" data-url="<?= $d->dd ?>" data-hash="<?= $d->hash ?>" data-counter="<?= $counter ?>">Download</button>
+                </div>
               <?php } ?>
-              <a href="https://github.com/<?= $d->repo ?>/tree/master/src/<?= $d->reserved ?>" class="btn btn-outline-primary" target="_blank">View Source</a>
-              <a href="#" class="btn btn-success visit" target="_blank" style="display:none" id="<?= $counter ?>">Check it Out!</a>
             </div>
+            <p class="card-text"><?= safeReturn(hed($d->descrip)) ?></p>
+          </div>
+          <div class="card-footer" style="background: inherit; border-color: inherit;">
+            <a href="#" class="btn btn-default install" style="display:none;">Please Wait</a>
+            <?php
+            if ($status["installed"] == true) {
+              if ($d->category == "plugin" && file_exists($abs_us_root . $us_url_root . "usersc/plugins/" . $d->reserved . "/.noupdate")) {
+                echo "This plugin is locked and cannot be updated";
+              } else {
+            ?>
+                <?php if (isset($msg['text'])) {
+                  $labelText = $msg['text'];
+                } else {
+                  $labelText = "Update";
+                }
+                ?>
+                <button type="button" name="button" class="btn btn-danger installme <?= $warning ?>" data-res="<?= safeReturn(hed($d->reserved)) ?>" data-type="<?= safeReturn(hed($d->category)) ?>" data-url="<?= safeReturn(hed($d->dd)) ?>" data-hash="<?= safeReturn(hed($d->hash)) ?>" data-counter="<?= $counter ?>"><?= $labelText ?></button>
+              <?php
+              }
+            } else { ?>
+              <button type="button" name="button" class="btn btn-primary installme <?= $warning ?>" data-res="<?= safeReturn(hed($d->reserved)) ?>" data-type="<?= safeReturn(hed($d->category)) ?>" data-url="<?= safeReturn(hed($d->dd)) ?>" data-hash="<?= safeReturn(hed($d->hash)) ?>" data-counter="<?= $counter ?>">Download</button>
+            <?php } ?>
+            <a href="https://github.com/<?= safeReturn(hed($d->repo)) ?>/tree/master/src/<?= safeReturn(hed($d->reserved)) ?>" class="btn btn-outline-primary" target="_blank">View Source</a>
+            <a href="#" class="btn btn-success visit" target="_blank" style="display:none" id="<?= $counter ?>">Check it Out!</a>
           </div>
         </div>
-      <?php
-        $counter++;
-      }
-    } else {
-      ?>
-      <p align="center"><span style="color:red"><strong>No results found</span></strong></p>
-  <?php
+      </div>
+    <?php
+      $counter++;
     }
-    echo "</div>";
+  } else {
+    ?>
+    <p align="center"><span style="color:red"><strong>No results found</span></strong></p>
+<?php
   }
-  ?>
+  echo "</div>";
+}
+?>
 </div> <!-- end .mt-3 -->
 <script type="text/javascript">
   $(".installme").click(function(event) {
