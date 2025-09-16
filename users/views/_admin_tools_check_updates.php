@@ -1,6 +1,45 @@
 <?php
 $sn = Config::get('session/session_name');
 $ip = ipCheck();
+
+// Custom function to handle URL fetching when allow_url_fopen is disabled
+if (!function_exists('us_file_get_contents')) {
+    function us_file_get_contents($url) {
+        // Check if it's a URL
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            // Use cURL for URLs
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; UserSpice)');
+                
+                // Check if we're on localhost
+                global $ip;
+                if ($ip == "::1" || $ip == "127.0.0.1") {
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                }
+                
+                $result = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                
+                if ($httpCode == 200) {
+                    return $result;
+                }
+                return false;
+            }
+            return false;
+        } else {
+            // Use regular file_get_contents for local files
+            return file_get_contents($url);
+        }
+    }
+}
 if (isset($_POST['change_track'])) {
   //token check
   if (!Token::check(Input::get('csrf'))) {
@@ -111,7 +150,7 @@ $update_available = false;
             } else {
               define('REMOTE_VERSION', 'https://userspice.com/version/version.txt');
             }
-            $remoteVersion = trim(file_get_contents(REMOTE_VERSION));
+            $remoteVersion = trim(us_file_get_contents(REMOTE_VERSION));
             if ($remoteVersion == "Visit UserSpice.com") {
               $canary = true;
             } else {

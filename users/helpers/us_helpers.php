@@ -1827,3 +1827,33 @@ function sanitizePath(string $path, string $baseDir)
 
     return $realFullPath;
 }
+
+if (!function_exists('us_file_get_contents')) {
+    function us_file_get_contents($url) {
+        // Check if it's a URL
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            // Use cURL for URLs
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; UserSpice)');
+                $result = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                
+                if ($httpCode == 200) {
+                    return $result;
+                }
+                return false;
+            }
+            return false;
+        } else {
+            // Use regular file_get_contents for local files
+            return file_get_contents($url);
+        }
+    }
+}
