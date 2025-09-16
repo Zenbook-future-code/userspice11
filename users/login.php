@@ -484,7 +484,7 @@ if (empty($dest = sanitizedDest('dest'))) {
                             <div class="form-outline mb-4">
                                 <label class="form-label" for="username"><?= lang("SIGNIN_UORE") ?></label>
                                 <input type="text" id="username" name="username" class="form-control form-control-lg"
-                                    value="<?= isset($_POST['username']) ? hed(Input::get('username')) : '' ?>"
+                                    value="<?= isset($_POST['username']) ? safeReturn(Input::get('username')) : '' ?>"
                                     required autocomplete="username">
                             </div>
 

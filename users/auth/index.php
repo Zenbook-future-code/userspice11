@@ -72,7 +72,6 @@ if ($clientDataQ->count() == 0) {
 
 $oauthClientData = $clientDataQ->first();
 
-$oauthClientData = $clientDataQ->first();
 
 // STEP 4: Validate redirect_uri matches what's registered
 if ($oauthData['redirect_uri'] !== $oauthClientData->redirect_uri) {

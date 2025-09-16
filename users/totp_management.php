@@ -42,20 +42,24 @@ if ($totpHandler && !empty($_POST['totp_action'])) {
         exit;
     } else {
         $totpAction = Input::get('totp_action');
-        $redirectUrl = 'totp_management.php#totp_management_section_anchor';
+        // Fixed: Separate base URL from anchor, build proper query strings
+        $baseRedirectUrl = 'totp_management.php';
+        $anchor = '#totp_management_section_anchor';
 
         switch ($totpAction) {
             case 'init_enable':
                 $_SESSION['totp_secret'] = $totpHandler->generateSecret();
                 $_SESSION['totp_setup_initiated'] = true;
                  // logger($userId, "TOTP_Setup", "Initiated TOTP setup process via totp_management.php.");
-                Redirect::to($redirectUrl . '&totp_event=setup_initiated');
+                // Fixed: Query parameters come before anchor
+                Redirect::to($baseRedirectUrl . '?totp_event=setup_initiated' . $anchor);
                 break;
 
             case 'verify_and_activate':
                 if (!validateRateLimit('totp_verify_and_activate', $userId)) {
                     $_SESSION['totp_error_message'] = getRateLimitErrorMessage('totp_verify_and_activate');
-                    Redirect::to($redirectUrl);
+                    // Fixed: Anchor comes after URL with no query parameters
+                    Redirect::to($baseRedirectUrl . $anchor);
                     exit;
                 }
                 
@@ -72,30 +76,35 @@ if ($totpHandler && !empty($_POST['totp_action'])) {
                                 unset($_SESSION['totp_setup_initiated']);
                                 markTotpVerified($userId);                                
                                  // logger($userId, "TOTP_Setup", "TOTP enabled and verified successfully via totp_management.php.");
-                                Redirect::to($redirectUrl . '&totp_success=1');
+                                // Fixed: Query parameters before anchor
+                                Redirect::to($baseRedirectUrl . '?totp_success=1' . $anchor);
                             } else {
                                 $_SESSION['totp_error_message'] = lang("2FA_FAIL");
                                 handleAuthFailure('totp_verify_and_activate', $userId);
                                  // logger($userId, "TOTP_Error", "Failed to activate TOTP status for user after verification in totp_management.php.");
-                                Redirect::to($redirectUrl . '&totp_error=activation_failed');
+                                // Fixed: Query parameters before anchor
+                                Redirect::to($baseRedirectUrl . '?totp_error=activation_failed' . $anchor);
                             }
                         } else {
                             $_SESSION['totp_error_message'] = lang("2FA_FAIL");
                             handleAuthFailure('totp_verify_and_activate', $userId);
                              // logger($userId, "TOTP_Error", "Failed to store TOTP secret for user after verification in totp_management.php.");
-                            Redirect::to($redirectUrl . '&totp_error=storage_failed');
+                            // Fixed: Query parameters before anchor
+                            Redirect::to($baseRedirectUrl . '?totp_error=storage_failed' . $anchor);
                         }
                     } else {
                         $_SESSION['totp_error_message'] = lang("2FA_INV");
                         handleAuthFailure('totp_verify_and_activate', $userId);
-                        Redirect::to($redirectUrl . '&totp_error=invalid_code&setup_initiated=1');
+                        // Fixed: Multiple query parameters properly joined with & before anchor
+                        Redirect::to($baseRedirectUrl . '?totp_error=invalid_code&setup_initiated=1' . $anchor);
                     }
                 } else {
                     $_SESSION['totp_error_message'] = lang("2FA_FAIL");
                     handleAuthFailure('totp_verify_and_activate', $userId);
                     unset($_SESSION['totp_secret']);
                     unset($_SESSION['totp_setup_initiated']);
-                    Redirect::to($redirectUrl . '&totp_error=missing_data');
+                    // Fixed: Query parameters before anchor
+                    Redirect::to($baseRedirectUrl . '?totp_error=missing_data' . $anchor);
                 }
                 break;
 
@@ -109,13 +118,15 @@ if ($totpHandler && !empty($_POST['totp_action'])) {
                     $_SESSION['totp_error_message'] = lang("2FA_ERR_DISABLE_FAILED");
                      // logger($userId, "TOTP_Error", "DB error during TOTP disable for user in totp_management.php.");
                 }
-                Redirect::to($redirectUrl);
+                // Fixed: Just anchor when no query parameters
+                Redirect::to($baseRedirectUrl . $anchor);
                 break;
 
             case 'regenerate_backup_codes':
                 if (!validateRateLimit('totp_regenerate_backup_codes', $userId)) {
                     $_SESSION['totp_error_message'] = getRateLimitErrorMessage('totp_regenerate_backup_codes');
-                    Redirect::to($redirectUrl);
+                    // Fixed: Just anchor when no query parameters
+                    Redirect::to($baseRedirectUrl . $anchor);
                     exit;
                 }
                 
@@ -141,7 +152,8 @@ if ($totpHandler && !empty($_POST['totp_action'])) {
                         $_SESSION['totp_backup_codes_to_display'] = $newBackupCodes;
                         $_SESSION['backup_codes_regenerated_message'] = true;
                          // logger($userId, "TOTP_Setup", "Backup codes regenerated by user via totp_management.php.");
-                        Redirect::to($redirectUrl . '&backup_regenerated=1');
+                        // Fixed: Query parameters before anchor
+                        Redirect::to($baseRedirectUrl . '?backup_regenerated=1' . $anchor);
                     } else {
                         $_SESSION['totp_error_message'] = lang("2FA_FAIL");
                         handleAuthFailure('totp_regenerate_backup_codes', $userId);
@@ -151,21 +163,24 @@ if ($totpHandler && !empty($_POST['totp_action'])) {
                     $_SESSION['totp_error_message'] = lang("2FA_FAIL");
                     handleAuthFailure('totp_regenerate_backup_codes', $userId);
                 }
-                Redirect::to($redirectUrl);
+                // Fixed: Just anchor when no query parameters
+                Redirect::to($baseRedirectUrl . $anchor);
                 break;
 
             case 'acknowledge_backup_codes':
                 unset($_SESSION['totp_backup_codes_to_display']);
                 unset($_SESSION['backup_codes_regenerated_message']);
                 $_SESSION['totp_success_message'] = lang("2FA_SUCCESS_BACKUP_ACK");
-                Redirect::to($redirectUrl);
+                // Fixed: Just anchor when no query parameters
+                Redirect::to($baseRedirectUrl . $anchor);
                 break;
 
             case 'cancel_setup':
                 unset($_SESSION['totp_secret']);
                 unset($_SESSION['totp_setup_initiated']);
                 $_SESSION['totp_success_message'] = lang("2FA_SUCCESS_SETUP_CANCELLED");
-                Redirect::to($redirectUrl . '&totp_setup_cancelled=1');
+                // Fixed: Query parameters before anchor
+                Redirect::to($baseRedirectUrl . '?totp_setup_cancelled=1' . $anchor);
                 break;
         }
     }
