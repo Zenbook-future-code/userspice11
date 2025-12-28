@@ -353,7 +353,7 @@ $shouldShowBackupCodes = $totpHandler && isset($_SESSION['totp_backup_codes_to_d
                 ?>
                     <h4><?= lang("2FA_SETUP_TITLE") ?></h4>
                     <p><?= lang("2FA_SCAN") ?></p>
-                    <div class="text-center mb-3"><img src="<?= $qrCodeUrl; ?>" alt="TOTP QR Code" class="img-fluid"></div>
+                    <div class="text-center mb-3"><img src="<?= safeReturn($qrCodeUrl); ?>" alt="TOTP QR Code" class="img-fluid"></div>
                     <div class="mb-3">
                         <p><strong><?= lang("2FA_SECRET_KEY_LABEL") ?></strong></p>
                         <div class="input-group">
