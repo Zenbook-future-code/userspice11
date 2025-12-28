@@ -1,0 +1,7 @@
+users/init.php
+*.zip
+*.sql
+.htaccess
+errors.log
+*.logs.php
+usersc/includes/totp_key.php
