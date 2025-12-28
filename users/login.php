@@ -18,7 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-ini_set("allow_url_fopen", 1);
 if (!defined('USERSPICE_LOGIN_CALLED')) {
    define('USERSPICE_LOGIN_CALLED', true);
    require_once '../users/init.php';
