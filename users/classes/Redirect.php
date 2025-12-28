@@ -22,57 +22,73 @@ class Redirect
 
   //This method no longer checks to see if a link is valid before redirecting
   //to prevent conflicts with deep folder structures
-  public static function to($location = null, $args = '')
-  {
-    global $us_url_root, $settings, $user;
-    if ($location) {
+public static function to($location = null, $args = '')
+{
+  global $us_url_root, $settings, $user, $usespice_nonce;
 
-      if ($settings != "" && $settings->debug > 0) {
-        if ($settings->debug == 2 || ($settings->debug == 1 && isset($user) && $user->isLoggedIn() && $user->data()->id == 1)) {
+  if (!$location) {
+    return;
+  }
 
-          // Get full backtrace for better debugging
-          $backtrace = debug_backtrace();
-          $caller = $backtrace[0];
+  if ($args) {
+    $location .= $args;
+  }
 
-          // Try to find the actual calling function/method
-          $realCaller = '';
-          if (isset($backtrace[1])) {
-            if (isset($backtrace[1]['class'])) {
-              $realCaller = $backtrace[1]['class'] . '::' . $backtrace[1]['function'] . '() ';
-            } elseif (isset($backtrace[1]['function'])) {
-              $realCaller = $backtrace[1]['function'] . '() ';
-            }
-          }
+  // Normalize/validate once, for BOTH header + echo fallback
+  $location = self::normalizeLocation((string)$location);
 
-          $fullPath = $caller['file'];
-          $line = $caller['line'];
+  if ($settings != "" && $settings->debug > 0) {
+    if ($settings->debug == 2 || ($settings->debug == 1 && isset($user) && $user->isLoggedIn() && $user->data()->id == 1)) {
 
-          if (!isset($user) || !$user->isLoggedIn()) {
-            $loggingUserId = 0;
-          } else {
-            $loggingUserId = $user->data()->id;
-          }
+      $backtrace = debug_backtrace();
+      $caller = $backtrace[0];
 
-          $loc = Input::sanitize($location);
-          logger($loggingUserId, "Redirect Diag", "From {$realCaller}{$fullPath} on line {$line} to {$loc}");
+      $realCaller = '';
+      if (isset($backtrace[1])) {
+        if (isset($backtrace[1]['class'])) {
+          $realCaller = $backtrace[1]['class'] . '::' . $backtrace[1]['function'] . '() ';
+        } elseif (isset($backtrace[1]['function'])) {
+          $realCaller = $backtrace[1]['function'] . '() ';
         }
       }
 
-      if ($args) $location .= $args;
-      if (!headers_sent()) {
-        header('Location: ' . $location);
-        exit();
-      } else {
-        echo '<script nonce="' . htmlspecialchars($usespice_nonce ?? '') . '" type="text/javascript">';
-        echo 'window.location.href="' . $location . '";';
-        echo '</script>';
-        echo '<noscript>';
-        echo '<meta http-equiv="refresh" content="0;url=' . $location . '" />';
-        echo '</noscript>';
-        exit;
-      }
+      $fullPath = $caller['file'] ?? '';
+      $line = $caller['line'] ?? 0;
+
+      $loggingUserId = (!isset($user) || !$user->isLoggedIn()) ? 0 : $user->data()->id;
+
+      // Logging only; do not change $location
+      $loc = Input::sanitize($location);
+      logger($loggingUserId, "Redirect Diag", "From {$realCaller}{$fullPath} on line {$line} to {$loc}");
     }
   }
+
+  if (!headers_sent()) {
+    // Throw an explicit status code
+    header('Location: ' . $location, true, 302);
+    exit();
+  }
+
+
+  $nonce = htmlspecialchars((string)($usespice_nonce ?? ''), ENT_QUOTES, 'UTF-8');
+
+  // Safe for JS string context
+  $jsLocation = json_encode(
+    $location,
+    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+  );
+
+  // Safe for HTML attribute context
+  $htmlLocation = htmlspecialchars($location, ENT_QUOTES, 'UTF-8');
+
+  echo '<script nonce="' . $nonce . '" type="text/javascript">';
+  echo 'window.location.href=' . $jsLocation . ';';
+  echo '</script>';
+  echo '<noscript>';
+  echo '<meta http-equiv="refresh" content="0;url=' . $htmlLocation . '" />';
+  echo '</noscript>';
+  exit();
+}
 
   //This is the old Redirect::to method that attempts to see if a link is valid before redirecting
   public static function safe($location = null, $args = '')
@@ -292,4 +308,43 @@ class Redirect
     }
     return '/' . implode('/', $out);
   }
+
+ /**
+ * Normalizes and validates redirect targets without breaking common legacy calls:
+ * - Allows: /path, login.php, ../bar, ?foo=1, #hash, https://example.com
+ * - Blocks: //evil.com (scheme-relative), non-http(s) schemes (javascript:, data:, etc.)
+ * - Removes CR/LF to prevent header injection
+ */
+private static function normalizeLocation(string $location): string
+{
+    $location = trim($location);
+    $location = str_replace(["\r", "\n", "\0"], '', $location);
+    
+    if ($location === '') {
+        return '/';
+    }
+    
+    // Allow query-only or fragment-only redirects (?foo=1, #section)
+    if ($location[0] === '?' || $location[0] === '#') {
+        return $location;
+    }
+    
+    // Block scheme-relative URLs (//evil.com)
+    if (substr($location, 0, 2) === '//') {
+        return '/';
+    }
+    
+    // If it looks like it has ANY scheme (something:...), only allow http/https://
+    // (This blocks javascript:, data:, file:, etc.)
+    if (preg_match('#^[a-z][a-z0-9+.\-]*:#i', $location)) {
+        if (!preg_match('#^https?://#i', $location)) {
+            return '/';
+        }
+        return $location;
+    }
+    
+    // Otherwise allow absolute-path and relative-path (login.php, ../bar)
+    return $location;
+}
+
 }
