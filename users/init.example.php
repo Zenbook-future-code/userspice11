@@ -1,20 +1,25 @@
 <?php
 die("Please edit the users/init.php with your database credentials.  You should also update the cookie and session names to something unique.  After that, you can delete the die statement at the top of the file and your site should work as expected.");
 
+
+define('USERSPICE_ACTIVE_LOGGING', false);
 //turns file based active loggin on or off. If set to true, it will log every page a user visits 
 //with some exceptions defined in usersc\includes\active_logging_custom.php
-define('USERSPICE_ACTIVE_LOGGING', false);
-
+$noPHPInfo = false;
 require_once 'classes/class.autoloader.php';
-session_start();
 
+
+ini_set('session.cookie_httponly', 1);
+session_start();
 // disables the feature that prevents the updater from installing languages you didn't have before the update
 // $disable_language_purge = true;
 
+// $abs_us_root=$_SERVER['DOCUMENT_ROOT'];
+$abs_us_root = Server::get('DOCUMENT_ROOT'); 
 
-$abs_us_root=$_SERVER['DOCUMENT_ROOT'];
+// $self_path=explode("/", $_SERVER['PHP_SELF']);
+$self_path = explode("/", Server::get('PHP_SELF'));
 
-$self_path=explode("/", $_SERVER['PHP_SELF']);
 $self_path_length=count($self_path);
 $file_found=FALSE;
 
