@@ -95,7 +95,7 @@ $selectedEmail = $_POST['email'] ?? 'test@example.com';
 
 			<?php if ($message): ?>
 				<div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
-					<?= $message ?>
+					<?= safeReturn($message) ?>
 					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 				</div>
 			<?php endif; ?>
@@ -105,8 +105,8 @@ $selectedEmail = $_POST['email'] ?? 'test@example.com';
 					<div class="test-section">
 						<h3>🧪 Test Actions</h3>
 						<p><strong>Current User ID:</strong> <?= $currentUser ?: 'Not logged in' ?><br>
-							<strong>Test Email:</strong> <?= $selectedEmail ?><br>
-							<strong>Your IP:</strong> <?= Server::get('REMOTE_ADDR'); ?? 'Unknown' ?>
+							<strong>Test Email:</strong> <?= safeReturn($selectedEmail) ?><br>
+							<strong>Your IP:</strong> <?= Server::get('REMOTE_ADDR') ?>
 						</p>
 
 						<form method="post" class="mb-3">
@@ -128,7 +128,7 @@ $selectedEmail = $_POST['email'] ?? 'test@example.com';
 								</div>
 								<div class="col-md-6">
 									<label for="email" class="form-label">Test Email (optional):</label>
-									<input type="email" name="email" id="email" class="form-control" value="<?= hed($selectedEmail) ?>">
+									<input type="email" name="email" id="email" class="form-control" value="<?= safeReturn($selectedEmail) ?>">
 								</div>
 							</div>
 
@@ -192,9 +192,9 @@ $selectedEmail = $_POST['email'] ?? 'test@example.com';
 									<?php if ($hasLimits): ?>
 										<?php foreach ($status['identifiers'] as $type => $info): ?>
 											<div class="mb-2">
-												<strong><?= ucfirst($type) ?>:</strong>
-												<?= $info['failed_attempts'] ?>/<?= $info['max_allowed'] ?> failed attempts
-												(<?= $info['total_attempts'] ?> total in last <?= $info['window_seconds'] ?>s)
+												<strong><?= ucfirst(safeReturn($type)) ?>:</strong>
+												<?= safeReturn($info['failed_attempts']) ?>/<?= safeReturn($info['max_allowed']) ?> failed attempts
+												(<?= safeReturn($info['total_attempts']) ?> total in last <?= safeReturn($info['window_seconds']) ?>s)
 												<?php if ($info['is_limited']): ?>
 													<span class="badge bg-danger">LIMITED</span>
 												<?php endif; ?>
