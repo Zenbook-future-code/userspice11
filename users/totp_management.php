@@ -323,12 +323,9 @@ $shouldShowBackupCodes = $totpHandler && isset($_SESSION['totp_backup_codes_to_d
             <h1 class="text-center mt-4"><?= lang("ACCT_2FA") ?></h1>
             <div id="totp_management_section_anchor" class="mt-2 border bg-light p-3 p-md-4">
                 <?php
-                if (isset($_SESSION['totp_error_message'])) {
-                    echo '<div class="alert alert-danger">' . $_SESSION['totp_error_message'] . '</div>';
-                    unset($_SESSION['totp_error_message']);
-                }
+
                 if (isset($_SESSION['totp_success_message'])) {
-                    echo '<div class="alert alert-success">' . $_SESSION['totp_success_message'] . '</div>';
+                    echo '<div class="alert alert-success">' . safeReturn($_SESSION['totp_success_message']) . '</div>';
                     unset($_SESSION['totp_success_message']);
                 }
                 echo resultBlock($errors, $successes);
@@ -340,7 +337,7 @@ $shouldShowBackupCodes = $totpHandler && isset($_SESSION['totp_backup_codes_to_d
                     <div class="alert alert-warning"><strong><?= lang("GEN_IMPORTANT") ?>:</strong> <?= lang("2FA_BACKUP_CODES_WARNING") ?></div>
                     <ul class="list-group mb-3" style="columns: 2; -webkit-columns: 2; -moz-columns: 2;">
                         <?php foreach ($_SESSION['totp_backup_codes_to_display'] as $backupCode) : ?>
-                            <li class="list-group-item"><code><?= hed($backupCode); ?></code></li>
+                            <li class="list-group-item"><code><?= safeReturn($backupCode); ?></code></li>
                         <?php endforeach; ?>
                     </ul>
                     <form method="POST">
@@ -360,7 +357,7 @@ $shouldShowBackupCodes = $totpHandler && isset($_SESSION['totp_backup_codes_to_d
                     <div class="mb-3">
                         <p><strong><?= lang("2FA_SECRET_KEY_LABEL") ?></strong></p>
                         <div class="input-group">
-                            <input type="text" class="form-control" value="<?= hed($secret); ?>" readonly id="totp-secret">
+                            <input type="text" class="form-control" value="<?= safeReturn($secret); ?>" readonly id="totp-secret">
                             <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('totp-secret')">
                                 <i class="fa fa-copy"></i> Copy
                             </button>
